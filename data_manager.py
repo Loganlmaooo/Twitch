@@ -3,7 +3,19 @@ import os
 from datetime import datetime
 
 class DataManager:
-    def __init__(self, data_file="farming_data.json"):
+    def __init__(self, data_file=None):
+        # Check for environment variable for data file (useful for Render.com)
+        if data_file is None:
+            data_file = os.environ.get("DATA_FILE_PATH", "farming_data.json")
+            
+        # Create data directory if it doesn't exist
+        data_dir = os.path.dirname(data_file)
+        if data_dir and not os.path.exists(data_dir):
+            try:
+                os.makedirs(data_dir)
+            except Exception as e:
+                print(f"Warning: Could not create data directory: {str(e)}")
+                
         self.data_file = data_file
         self.current_session = None
         self.data = self.load_data()

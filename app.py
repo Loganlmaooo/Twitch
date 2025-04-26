@@ -516,6 +516,14 @@ with col2:
             For security, use the `/start` command in a private channel or DM.
             """)
 
+# Deployment info
+is_render = os.environ.get("RENDER", False)
+if is_render:
+    st.sidebar.success("Running on Render.com")
+    
+    if os.environ.get("DATA_FILE_PATH"):
+        st.sidebar.info(f"Using data from {os.environ.get('DATA_FILE_PATH')}")
+
 # Footer
 st.markdown("---")
 st.markdown(
