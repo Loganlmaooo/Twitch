@@ -318,6 +318,12 @@ async def status_command(interaction: discord.Interaction):
     
     await interaction.followup.send(status_msg)
 
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+bot = discord.Bot(intents=intents)
+
 @bot.tree.command(name="logs", description="Get recent logs for a channel")
 @app_commands.describe(channel="Twitch channel name")
 @app_commands.describe(count="Number of log entries to show (max 50)")
