@@ -6,7 +6,7 @@ packages = ["geckodriver", "glibcLocales"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["streamlit", "run", "app.py", "--server.port", "5000"]
+run = ["sh", "-c", "streamlit run app.py --server.address 0.0.0.0 --server.port 5000"]
 
 [workflows]
 runButton = "Project"
