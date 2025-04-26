@@ -397,15 +397,23 @@ with col2:
     with tab4:
         st.subheader("Discord Bot Integration")
         
+        # Info callout about token configuration
+        st.info("""
+        **Important: The Discord bot token only needs to be configured here.**
+        
+        No environment variables are required for deployment. The Discord bot 
+        worker will automatically wait for a token to be configured through this interface.
+        """)
+        
         st.markdown("""
         The Discord bot allows you to control your Twitch Auto-Farmer from Discord using slash commands.
         
         **Setup Instructions:**
         1. Create a Discord bot on the [Discord Developer Portal](https://discord.com/developers/applications)
         2. Copy your bot token
-        3. Enter the token below
-        4. Run the Discord bot using the button below
-        5. Invite the bot to your server
+        3. Enter the token below and save
+        4. The Discord bot will automatically start using this token
+        5. Invite the bot to your server using the OAuth2 URL from the Developer Portal
         """)
         
         # Discord Bot Setup
@@ -435,6 +443,10 @@ with col2:
             if st.button("Save Discord Bot Settings"):
                 import json
                 try:
+                    # Check if token is valid format (basic validation)
+                    if discord_token and len(discord_token) < 50:
+                        st.warning("Warning: The token doesn't look like a valid Discord bot token. Please check it again.")
+                    
                     # Update session state
                     st.session_state.discord_bot_token = discord_token
                     st.session_state.discord_guild_id = guild_id
@@ -449,54 +461,64 @@ with col2:
                     with open("bot_config.json", "w") as f:
                         json.dump(config, f, indent=4)
                     
-                    st.success("Discord bot settings saved! Please restart the Discord bot.")
+                    st.success("Discord bot settings saved! The bot will automatically use these settings.")
+                    
+                    # Show info about server deployment
+                    if os.environ.get("RENDER", False):
+                        st.info("Running on Render.com: The Discord bot worker will automatically detect these changes.")
                 except Exception as e:
                     st.error(f"Error saving settings: {str(e)}")
         
-        # Discord Bot Controls
-        with st.expander("Bot Controls", expanded=True):
-            st.markdown("""
-            The Discord bot runs in a separate process. Use these controls to manage it.
-            """)
-            
-            bot_cols = st.columns(2)
-            
-            # Check if bot is running
+        # Discord Bot Status
+        with st.expander("Bot Status", expanded=True):
+            import json
             import os
-            import subprocess
+            from datetime import datetime
             
-            bot_status = "Unknown"
-            try:
-                # Simple check by looking at workflow status (in a real app, you would check the process)
-                if os.path.exists("bot_config.json"):
-                    bot_status = "Ready to start"
-            except:
-                bot_status = "Not configured"
+            token_status = "Not configured"
+            token_source = None
+            token_configured_time = None
             
-            bot_cols[0].metric("Bot Status", bot_status)
-            
-            if bot_cols[1].button("Restart Discord Bot"):
-                st.info("Restarting Discord bot... This may take a few seconds.")
-                
+            # Check config file
+            if os.path.exists("bot_config.json"):
                 try:
-                    import subprocess
+                    # Get file modification time
+                    mod_time = os.path.getmtime("bot_config.json")
+                    token_configured_time = datetime.fromtimestamp(mod_time).strftime('%Y-%m-%d %H:%M:%S')
                     
-                    # Kill existing bot process if running (in a real environment)
-                    try:
-                        # In a production environment, you would find and kill the process
-                        # For this example, we'll just restart the workflow
-                        pass
-                    except:
-                        pass
-                    
-                    # Start the bot in a new process
-                    subprocess.Popen(["python", "run_discord_bot.py"], 
-                                     stdout=subprocess.PIPE, 
-                                     stderr=subprocess.PIPE)
-                    
-                    st.success("Discord bot restart initiated. Check the logs for status.")
-                except Exception as e:
-                    st.error(f"Error restarting bot: {str(e)}")
+                    with open("bot_config.json", "r") as f:
+                        config = json.load(f)
+                        if config.get("token", "").strip():
+                            token_status = "Configured"
+                            token_source = "Configuration file"
+                except Exception:
+                    pass
+            
+            # Or check environment variable as fallback
+            if token_status == "Not configured" and os.environ.get("DISCORD_TOKEN", "").strip():
+                token_status = "Configured"
+                token_source = "Environment variable"
+            
+            # Display token status
+            status_cols = st.columns(2)
+            status_cols[0].metric("Token Status", token_status)
+            
+            if token_source:
+                status_cols[1].metric("Token Source", token_source)
+                if token_configured_time:
+                    st.caption(f"Last configured: {token_configured_time}")
+            
+            # Show bot start status
+            if token_status == "Configured":
+                st.success("Discord bot is ready to start or is already running.")
+                st.markdown("""
+                **The Discord bot worker will:**
+                1. Automatically detect your token
+                2. Start the bot with your configuration
+                3. Retry if there are any connection issues
+                """)
+            else:
+                st.warning("Discord bot is not configured. Please enter a token above.")
         
         # Available Commands
         with st.expander("Available Commands", expanded=True):

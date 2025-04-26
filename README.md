@@ -30,9 +30,13 @@ This application can be deployed on Render.com as two separate services (web app
 
 Set the following environment variables in your Render.com dashboard:
 
-- `DATA_FILE_PATH`: Path to store farming data (e.g., `/var/data/farming_data.json`)
-- `DISCORD_TOKEN`: Your Discord bot token
-- `DISCORD_GUILD_ID` (optional): Restrict Discord bot to a specific server
+- `DATA_FILE_PATH`: Path to store farming data (e.g., `/var/data/farming_data.json`) 
+- `RENDER`: Set to `true` to show deployment info in the UI
+
+**Note about Discord token:**
+- You do NOT need to set the Discord token as an environment variable
+- The token should be configured through the web interface
+- The Discord bot worker will automatically wait for the token to be configured
 
 ### Deployment Steps
 
