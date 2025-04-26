@@ -44,10 +44,7 @@ if 'log_messages' not in st.session_state:
     st.session_state.log_messages = []
 if 'data_manager' not in st.session_state:
     st.session_state.data_manager = DataManager()
-if 'discord_webhook_url' not in st.session_state:
-    st.session_state.discord_webhook_url = "https://discord.com/api/webhooks/1365508833815953518/i6QoxKXSD75Yp-F1zmeVEga1K_DKt3J4xAOdMe_TGWXjWPmBkAbhCB9l4dyfoQtC7Yl8"
-if 'enable_discord_logging' not in st.session_state:
-    st.session_state.enable_discord_logging = True
+
 
 # Custom function to update the UI while bot is running
 def bot_worker():
@@ -92,12 +89,7 @@ def bot_worker():
             if len(st.session_state.log_messages) > 100:
                 st.session_state.log_messages = st.session_state.log_messages[-100:]
             
-            # Send to Discord webhook if enabled
-            if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
-                send_discord_webhook(
-                    message=formatted_log,
-                    webhook_url=st.session_state.discord_webhook_url
-                )
+            
                 
             # Send in-app notification for bonus claims
             if "bonus" in log_message.lower():
@@ -339,13 +331,12 @@ with col1:
 
 # Column 2: Dashboard
 with col2:
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Dashboard", 
         "Activity Log", 
         "Statistics", 
         "Notifications",
-        "Settings",
-        "Discord Bot"
+        "Settings"
     ])
     
     # Tab 1: Dashboard Overview
