@@ -49,7 +49,7 @@ if 'data_manager' not in st.session_state:
 if 'discord_webhook_url' not in st.session_state:
     st.session_state.discord_webhook_url = "https://discord.com/api/webhooks/1365508833815953518/i6QoxKXSD75Yp-F1zmeVEga1K_DKt3J4xAOdMe_TGWXjWPmBkAbhCB9l4dyfoQtC7Yl8"
 if 'enable_discord_logging' not in st.session_state:
-    st.session_state.enable_discord_logging = False
+    st.session_state.enable_discord_logging = True
 
 # Custom function to update the UI while bot is running
 def bot_worker():
