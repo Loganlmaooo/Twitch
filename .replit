@@ -6,24 +6,11 @@ packages = ["geckodriver", "glibcLocales"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["sh", "-c", "python run_discord_bot.py"]
+run = ["sh", "-c", "streamlit run app.py --server.port 5000"]
 build = ["sh", "-c", "poetry install"]
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Streamlit Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Discord Bot"
+runButton = "Streamlit Server"
 
 [[workflows.workflow]]
 name = "Streamlit Server"
@@ -33,14 +20,6 @@ author = "agent"
 task = "shell.exec"
 args = "streamlit run app.py --server.port 5000"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Discord Bot"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python run_discord_bot.py"
 
 [[ports]]
 localPort = 5000
