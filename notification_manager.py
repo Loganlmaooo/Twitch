@@ -18,6 +18,13 @@ class NotificationManager:
         self.twilio_sid = os.environ.get("TWILIO_ACCOUNT_SID")
         self.twilio_token = os.environ.get("TWILIO_AUTH_TOKEN")
         self.twilio_phone = os.environ.get("TWILIO_PHONE_NUMBER")
+        
+        # Debug logging for credential detection
+        print("Twilio Credentials Status:")
+        print(f"Account SID present: {bool(self.twilio_sid)}")
+        print(f"Auth Token present: {bool(self.twilio_token)}")
+        print(f"Phone Number present: {bool(self.twilio_phone)}")
+        
         self.settings = self.load_settings()
         
     def load_settings(self):
