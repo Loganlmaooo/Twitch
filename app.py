@@ -248,7 +248,7 @@ with col1:
 
 # Column 2: Dashboard
 with col2:
-    tab1, tab2, tab3 = st.tabs(["Dashboard", "Activity Log", "Statistics"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Activity Log", "Statistics", "Discord Bot"])
     
     # Tab 1: Dashboard Overview
     with tab1:
@@ -392,6 +392,129 @@ with col2:
                 st.plotly_chart(fig4, use_container_width=True)
         else:
             st.info("Start farming to see your detailed statistics!")
+    
+    # Tab 4: Discord Bot
+    with tab4:
+        st.subheader("Discord Bot Integration")
+        
+        st.markdown("""
+        The Discord bot allows you to control your Twitch Auto-Farmer from Discord using slash commands.
+        
+        **Setup Instructions:**
+        1. Create a Discord bot on the [Discord Developer Portal](https://discord.com/developers/applications)
+        2. Copy your bot token
+        3. Enter the token below
+        4. Run the Discord bot using the button below
+        5. Invite the bot to your server
+        """)
+        
+        # Discord Bot Setup
+        with st.expander("Bot Configuration", expanded=True):
+            if 'discord_bot_token' not in st.session_state:
+                st.session_state.discord_bot_token = ""
+            
+            # Bot token input
+            discord_token = st.text_input(
+                "Discord Bot Token", 
+                type="password",
+                value=st.session_state.discord_bot_token,
+                help="Your Discord bot token from the Discord Developer Portal"
+            )
+            
+            # Optional Guild ID
+            if 'discord_guild_id' not in st.session_state:
+                st.session_state.discord_guild_id = ""
+            
+            guild_id = st.text_input(
+                "Guild ID (Optional)",
+                value=st.session_state.discord_guild_id,
+                help="Optional: Restrict bot commands to a specific server"
+            )
+            
+            # Save button
+            if st.button("Save Discord Bot Settings"):
+                import json
+                try:
+                    # Update session state
+                    st.session_state.discord_bot_token = discord_token
+                    st.session_state.discord_guild_id = guild_id
+                    
+                    # Save to config file
+                    guild_id_int = int(guild_id) if guild_id.strip() else None
+                    config = {
+                        "token": discord_token,
+                        "guild_id": guild_id_int
+                    }
+                    
+                    with open("bot_config.json", "w") as f:
+                        json.dump(config, f, indent=4)
+                    
+                    st.success("Discord bot settings saved! Please restart the Discord bot.")
+                except Exception as e:
+                    st.error(f"Error saving settings: {str(e)}")
+        
+        # Discord Bot Controls
+        with st.expander("Bot Controls", expanded=True):
+            st.markdown("""
+            The Discord bot runs in a separate process. Use these controls to manage it.
+            """)
+            
+            bot_cols = st.columns(2)
+            
+            # Check if bot is running
+            import os
+            import subprocess
+            
+            bot_status = "Unknown"
+            try:
+                # Simple check by looking at workflow status (in a real app, you would check the process)
+                if os.path.exists("bot_config.json"):
+                    bot_status = "Ready to start"
+            except:
+                bot_status = "Not configured"
+            
+            bot_cols[0].metric("Bot Status", bot_status)
+            
+            if bot_cols[1].button("Restart Discord Bot"):
+                st.info("Restarting Discord bot... This may take a few seconds.")
+                
+                try:
+                    import subprocess
+                    
+                    # Kill existing bot process if running (in a real environment)
+                    try:
+                        # In a production environment, you would find and kill the process
+                        # For this example, we'll just restart the workflow
+                        pass
+                    except:
+                        pass
+                    
+                    # Start the bot in a new process
+                    subprocess.Popen(["python", "run_discord_bot.py"], 
+                                     stdout=subprocess.PIPE, 
+                                     stderr=subprocess.PIPE)
+                    
+                    st.success("Discord bot restart initiated. Check the logs for status.")
+                except Exception as e:
+                    st.error(f"Error restarting bot: {str(e)}")
+        
+        # Available Commands
+        with st.expander("Available Commands", expanded=True):
+            st.markdown("""
+            ### Discord Bot Commands
+            
+            The following slash commands are available in Discord:
+            
+            * `/setup <token> [guild_id]` - Configure the bot (admin only)
+            * `/start <channel> <username> <password>` - Start farming on a channel
+            * `/stop <channel>` - Stop farming on a channel (use 'all' to stop all)
+            * `/status` - Check current farming sessions
+            * `/logs <channel> [count]` - View recent logs for a channel
+            * `/stats` - View farming statistics
+            * `/help` - Show help information
+            
+            For security, use the `/start` command in a private channel or DM.
+            """)
 
 # Footer
 st.markdown("---")
