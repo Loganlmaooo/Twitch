@@ -1,28 +1,29 @@
+
 services:
   # Streamlit Web App Service
   - type: web
     name: twitch-autofarmer-web
     env: python
-    buildCommand: chmod +x render-build.sh && ./render-build.sh && poetry install
-    startCommand: poetry run streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    buildCommand: poetry install
+    startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port 5000
     envVars:
       - key: PYTHONUNBUFFERED
-        value: true
+        value: "true"
       - key: DATA_FILE_PATH
         value: /var/data/farming_data.json
       - key: RENDER
-        value: true
+        value: "true"
   
-  # Discord Bot Worker Service
+  # Discord Bot Worker Service  
   - type: worker
     name: twitch-autofarmer-discord
     env: python
-    buildCommand: chmod +x render-build.sh && ./render-build.sh && poetry install
-    startCommand: poetry run python run_discord_bot.py
+    buildCommand: poetry install
+    startCommand: python run_discord_bot.py
     envVars:
       - key: PYTHONUNBUFFERED
-        value: true
+        value: "true"
       - key: DATA_FILE_PATH
         value: /var/data/farming_data.json
       - key: RENDER
-        value: true
+        value: "true"
