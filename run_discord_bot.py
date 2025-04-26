@@ -6,17 +6,16 @@ Run this script to start the Discord bot for controlling Twitch auto-farming.
 """
 
 import os
-import sys
-import time
 import json
-from discord_bot import bot, load_config, TOKEN
+import time
+from discord_bot import bot, load_config
 
 def check_token_file():
     """Continuously check for a token file and return the token when available."""
     while True:
         # Load the bot configuration
         load_config()
-        
+
         # Check for token in bot_config.json
         if os.path.exists("bot_config.json"):
             try:
@@ -28,44 +27,32 @@ def check_token_file():
                         return token
             except Exception as e:
                 print(f"Error reading token file: {str(e)}")
-        
+
         # Check for environment variable as fallback
         env_token = os.environ.get("DISCORD_TOKEN", "")
         if env_token and env_token.strip():
             print("Discord bot token found in environment variables.")
             return env_token
-            
+
         print("Discord bot token not found. Waiting for token to be configured...")
         print("Please use the Streamlit dashboard to set up your Discord bot token.")
         print("The bot will automatically start once a token is provided.")
-        # Wait for a bit before checking again
         time.sleep(30)
 
 if __name__ == "__main__":
-    print("Starting Discord bot worker...")
-    
-    # Wait for token to be available (either from file or environment variable)
-    token = check_token_file()
-    
-    # Run the bot with the token
-    try:
-        print("Starting Discord bot with the provided token...")
-        bot.run(token)
-    except Exception as e:
-        print(f"Error starting Discord bot: {str(e)}")
-        
-        # If the token is invalid, clear it from memory and wait for a new one
-        print("Token appears to be invalid. Waiting for a new token...")
-        
-        # Continuously retry with new tokens
-        while True:
-            try:
-                # Wait 60 seconds before checking for a new token
-                time.sleep(60)
-                token = check_token_file()
-                print("Attempting to start bot with new token...")
+    while True:
+        try:
+            # Get token
+            token = check_token_file()
+
+            if token:
+                print("Starting Discord bot...")
                 bot.run(token)
-                break  # If successful, exit the loop
-            except Exception as e:
-                print(f"Error starting Discord bot: {str(e)}")
-                print("Waiting for a valid token...")
+            else:
+                print("No token available, waiting...")
+                time.sleep(30)
+
+        except Exception as e:
+            print(f"Error running Discord bot: {str(e)}")
+            print("Restarting in 30 seconds...")
+            time.sleep(30)
