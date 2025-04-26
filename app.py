@@ -85,6 +85,9 @@ def bot_worker():
             # Add to local log messages
             st.session_state.log_messages.append(formatted_log)
             
+            # Send to Discord webhook
+            send_webhook_log(formatted_log)
+            
             # Keep only the most recent 100 messages
             if len(st.session_state.log_messages) > 100:
                 st.session_state.log_messages = st.session_state.log_messages[-100:]
