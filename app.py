@@ -10,6 +10,12 @@ from twitch_bot import TwitchBot
 from data_manager import DataManager
 from utils import format_time, get_emoji_status, send_discord_webhook
 
+# Import new modules
+from notification_manager import notification_manager
+from user_preferences import user_preferences
+from channel_manager import channel_manager
+from onboarding_tutorial import tutorial_manager
+
 # Page configuration
 st.set_page_config(
     page_title="Twitch Auto-Farmer",
@@ -17,6 +23,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Apply user theme settings
+user_preferences.apply_theme()
 
 # Initialize session state variables if they don't exist
 if 'bot_running' not in st.session_state:
@@ -47,7 +56,32 @@ def bot_worker():
     while st.session_state.bot_running:
         # Update the UI periodically
         time.sleep(10)
-        st.session_state.points_gained += st.session_state.active_bot.get_gained_points()
+        points_gained = st.session_state.active_bot.get_gained_points()
+        if points_gained > 0:
+            prev_points = st.session_state.points_gained
+            st.session_state.points_gained += points_gained
+            
+            # Update channel statistics in channel manager
+            channel_manager.update_channel_stats(
+                st.session_state.selected_channel, 
+                points_gained=points_gained, 
+                online=True
+            )
+            
+            # Check for milestones
+            notification_manager.check_milestone(
+                st.session_state.selected_channel, 
+                st.session_state.points_gained
+            )
+            
+            # Check for achievement unlocks
+            if st.session_state.points_gained >= 5000:
+                user_preferences.unlock_achievement("Point Collector")
+            
+            if st.session_state.points_gained >= 100000:
+                user_preferences.unlock_achievement("Twitch Master")
+            
+        # Check log messages
         log_message = st.session_state.active_bot.get_latest_log()
         if log_message:
             timestamp = datetime.now().strftime('%H:%M:%S')
@@ -65,6 +99,20 @@ def bot_worker():
                 send_discord_webhook(
                     message=formatted_log,
                     webhook_url=st.session_state.discord_webhook_url
+                )
+                
+            # Send in-app notification for bonus claims
+            if "bonus" in log_message.lower():
+                notification_manager.notify_bonus_claimed(
+                    st.session_state.selected_channel, 
+                    points_gained
+                )
+                
+            # Check for stream offline mentions
+            if "offline" in log_message.lower():
+                channel_manager.update_channel_stats(
+                    st.session_state.selected_channel, 
+                    online=False
                 )
 
 # Function to start farming
@@ -101,6 +149,12 @@ def start_farming():
         log_message = f"[{timestamp}] Started farming on channel: {st.session_state.selected_channel}"
         st.session_state.log_messages.append(log_message)
         
+        # Send notification
+        notification_manager.send_in_app(
+            f"Started farming on {st.session_state.selected_channel}", 
+            "success"
+        )
+        
         # Send to Discord webhook if enabled
         if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
             send_discord_webhook(
@@ -118,6 +172,22 @@ def start_farming():
         
         # Record session start in data manager
         st.session_state.data_manager.start_session(st.session_state.selected_channel)
+        
+        # Update channel statistics
+        channel_manager.update_channel_stats(
+            st.session_state.selected_channel,
+            online=True
+        )
+        
+        # Check if this is a new channel for achievements
+        channels = st.session_state.data_manager.get_channel_stats()
+        if len(channels) >= 3:
+            user_preferences.unlock_achievement("Channel Hopper")
+        
+        # Check if this is night farming (midnight to 5am)
+        current_hour = datetime.now().hour
+        if 0 <= current_hour < 5:
+            user_preferences.unlock_achievement("Night Owl")
         
         st.success(f"Started farming on {st.session_state.selected_channel}")
         time.sleep(1)
@@ -150,12 +220,35 @@ def stop_farming():
         log_message = f"[{timestamp}] Stopped farming on channel: {st.session_state.selected_channel}"
         st.session_state.log_messages.append(log_message)
         
+        # Send notification
+        notification_manager.send_in_app(
+            f"Stopped farming on {st.session_state.selected_channel}. Earned {st.session_state.points_gained} points.", 
+            "warning"
+        )
+        
+        # Update channel stats with offline status
+        channel_manager.update_channel_stats(
+            st.session_state.selected_channel,
+            online=False
+        )
+        
         # Send to Discord webhook if enabled
         if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
             send_discord_webhook(
                 message=log_message,
                 webhook_url=st.session_state.discord_webhook_url
             )
+        
+        # Check for Marathon Farmer achievement
+        total_time = st.session_state.data_manager.get_total_watchtime()
+        if total_time >= 24:  # 24 hours
+            user_preferences.unlock_achievement("Marathon Farmer")
+            
+        # Check for Bonus Hunter achievement
+        if "Bonus Hunter" in st.session_state:
+            bonus_claims = st.session_state.get("bonus_claims", 0)
+            if bonus_claims >= 10:
+                user_preferences.unlock_achievement("Bonus Hunter")
         
         st.success(f"Stopped farming on {st.session_state.selected_channel}")
         
@@ -248,7 +341,14 @@ with col1:
 
 # Column 2: Dashboard
 with col2:
-    tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Activity Log", "Statistics", "Discord Bot"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "Dashboard", 
+        "Activity Log", 
+        "Statistics", 
+        "Notifications",
+        "Settings",
+        "Discord Bot"
+    ])
     
     # Tab 1: Dashboard Overview
     with tab1:
