@@ -3,6 +3,8 @@ name = "twitch-autofarmer"
 version = "0.1.0"
 description = "Twitch points and watchtime auto-farming tool with Discord bot integration"
 authors = ["Your Name <your.email@example.com>"]
+packages = [{include = "*.py"}]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
