@@ -172,9 +172,15 @@ class NotificationManager:
         """Render the notification settings UI in Streamlit"""
         st.subheader("Notification Settings")
         
+        # Show SMS configuration status
+        if all([self.twilio_sid, self.twilio_token, self.twilio_phone]):
+            st.success("SMS notifications are available")
+        else:
+            st.error("SMS notifications are not configured")
+            
         # Enable/disable notifications
         enabled = st.toggle("Enable SMS Notifications", 
-                          value=self.settings.get("enabled", False),
+                          value=self.settings.get("enabled", True),
                           help="Enable SMS notifications for important events")
         
         # Phone number input
