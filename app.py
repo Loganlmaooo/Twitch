@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from twitch_bot import TwitchBot
 from data_manager import DataManager
-from utils import format_time, get_emoji_status
+from utils import format_time, get_emoji_status, send_discord_webhook
 
 # Page configuration
 st.set_page_config(
@@ -37,6 +37,10 @@ if 'log_messages' not in st.session_state:
     st.session_state.log_messages = []
 if 'data_manager' not in st.session_state:
     st.session_state.data_manager = DataManager()
+if 'discord_webhook_url' not in st.session_state:
+    st.session_state.discord_webhook_url = "https://discord.com/api/webhooks/1365508833815953518/i6QoxKXSD75Yp-F1zmeVEga1K_DKt3J4xAOdMe_TGWXjWPmBkAbhCB9l4dyfoQtC7Yl8"
+if 'enable_discord_logging' not in st.session_state:
+    st.session_state.enable_discord_logging = False
 
 # Custom function to update the UI while bot is running
 def bot_worker():
@@ -46,10 +50,22 @@ def bot_worker():
         st.session_state.points_gained += st.session_state.active_bot.get_gained_points()
         log_message = st.session_state.active_bot.get_latest_log()
         if log_message:
-            st.session_state.log_messages.append(f"[{datetime.now().strftime('%H:%M:%S')}] {log_message}")
+            timestamp = datetime.now().strftime('%H:%M:%S')
+            formatted_log = f"[{timestamp}] {log_message}"
+            
+            # Add to local log messages
+            st.session_state.log_messages.append(formatted_log)
+            
             # Keep only the most recent 100 messages
             if len(st.session_state.log_messages) > 100:
                 st.session_state.log_messages = st.session_state.log_messages[-100:]
+            
+            # Send to Discord webhook if enabled
+            if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
+                send_discord_webhook(
+                    message=formatted_log,
+                    webhook_url=st.session_state.discord_webhook_url
+                )
 
 # Function to start farming
 def start_farming():
@@ -81,7 +97,16 @@ def start_farming():
         st.session_state.points_gained = 0
         
         # Add log message
-        st.session_state.log_messages.append(f"[{datetime.now().strftime('%H:%M:%S')}] Started farming on channel: {st.session_state.selected_channel}")
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        log_message = f"[{timestamp}] Started farming on channel: {st.session_state.selected_channel}"
+        st.session_state.log_messages.append(log_message)
+        
+        # Send to Discord webhook if enabled
+        if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
+            send_discord_webhook(
+                message=log_message,
+                webhook_url=st.session_state.discord_webhook_url
+            )
         
         # Start the bot in a separate thread
         st.session_state.active_bot.start_farming(st.session_state.selected_channel)
@@ -121,7 +146,16 @@ def stop_farming():
         )
         
         # Add log message
-        st.session_state.log_messages.append(f"[{datetime.now().strftime('%H:%M:%S')}] Stopped farming on channel: {st.session_state.selected_channel}")
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        log_message = f"[{timestamp}] Stopped farming on channel: {st.session_state.selected_channel}"
+        st.session_state.log_messages.append(log_message)
+        
+        # Send to Discord webhook if enabled
+        if st.session_state.enable_discord_logging and st.session_state.discord_webhook_url:
+            send_discord_webhook(
+                message=log_message,
+                webhook_url=st.session_state.discord_webhook_url
+            )
         
         st.success(f"Stopped farming on {st.session_state.selected_channel}")
         
