@@ -36,16 +36,25 @@ Set the following environment variables in your Render.com dashboard:
 
 ### Deployment Steps
 
-1. Create a new Web Service on Render.com
+1. Use Blueprint Deployment (Recommended)
+   - Connect your repository to Render.com
+   - The `render.yaml` file will automatically configure all services
+   - Add your Discord bot token in the environment variables
+
+2. Manual Deployment (Alternative)
+
+   **Web Service**:
    - Connect your repository
-   - Set the build command to `pip install -r packages.txt`
-   - Set the start command to `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+   - Set environment to "Python"
+   - Set the build command to `chmod +x render-build.sh && ./render-build.sh && poetry install`
+   - Set the start command to `poetry run streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
    - Add the necessary environment variables
 
-2. Create a new Background Worker on Render.com
+   **Background Worker**:
    - Connect the same repository
-   - Set the build command to `pip install -r packages.txt`
-   - Set the start command to `python run_discord_bot.py`
+   - Set environment to "Python"
+   - Set the build command to `chmod +x render-build.sh && ./render-build.sh && poetry install`
+   - Set the start command to `poetry run python run_discord_bot.py`
    - Add the same environment variables
 
 For more detailed instructions, see the [Render.com documentation](https://render.com/docs).

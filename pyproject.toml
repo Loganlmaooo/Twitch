@@ -1,13 +1,19 @@
-[project]
-name = "repl-nix-workspace"
+[tool.poetry]
+name = "twitch-autofarmer"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
-dependencies = [
-    "discord-py>=2.5.2",
-    "pandas>=2.2.3",
-    "plotly>=6.0.1",
-    "requests>=2.32.3",
-    "selenium>=4.31.0",
-    "streamlit>=1.44.1",
-]
+description = "Twitch points and watchtime auto-farming tool with Discord bot integration"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.30.0"
+pandas = "^2.1.1"
+plotly = "^5.18.0"
+discord-py = "^2.3.2"
+selenium = "^4.16.0"
+requests = "^2.31.0"
+webdriver-manager = "^4.0.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
