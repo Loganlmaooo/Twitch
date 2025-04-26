@@ -1,0 +1,22 @@
+services:
+  # Streamlit Web App Service
+  - type: web
+    name: twitch-autofarmer-web
+    env: python
+    buildCommand: pip install -r packages.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
+  
+  # Discord Bot Worker Service
+  - type: worker
+    name: twitch-autofarmer-discord
+    env: python
+    buildCommand: pip install -r packages.txt
+    startCommand: python run_discord_bot.py
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
+      - key: DISCORD_TOKEN
+        sync: false # This will be a secret you set in the Render dashboard

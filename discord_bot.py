@@ -12,9 +12,13 @@ from twitch_bot import TwitchBot
 from data_manager import DataManager
 from utils import format_time, get_emoji_status
 
-# Bot configuration - will be loaded from config.json
-TOKEN = ""
-GUILD_ID = None  # Optional: for restricting commands to a specific server
+# Bot configuration - will be loaded from config.json or environment variables
+TOKEN = os.environ.get("DISCORD_TOKEN", "")
+GUILD_ID = os.environ.get("DISCORD_GUILD_ID", None)
+if GUILD_ID and GUILD_ID.isdigit():
+    GUILD_ID = int(GUILD_ID)
+else:
+    GUILD_ID = None  # Optional: for restricting commands to a specific server
 
 # Store active bots and sessions
 active_bots = {}
