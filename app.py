@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from twitch_bot import TwitchBot
 from data_manager import DataManager
-from utils import format_time, get_emoji_status, send_discord_webhook
+from utils import format_time, get_emoji_status
 from notification_manager import notification_manager
 from user_preferences import user_preferences
 from channel_manager import channel_manager

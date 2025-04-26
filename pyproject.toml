@@ -1,7 +1,8 @@
+
 [tool.poetry]
 name = "twitch-autofarmer"
 version = "0.1.0"
-description = "Twitch points and watchtime auto-farming tool with Discord bot integration"
+description = "Twitch points and watchtime auto-farming tool"
 authors = ["Your Name <your.email@example.com>"]
 packages = [{include = "*.py"}]
 readme = "README.md"
@@ -11,7 +12,6 @@ python = "^3.11"
 streamlit = "^1.30.0"
 pandas = "^2.1.1"
 plotly = "^5.18.0"
-discord-py = "^2.3.2"
 selenium = "^4.16.0"
 requests = "^2.31.0"
 webdriver-manager = "^4.0.1"
