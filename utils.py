@@ -1,5 +1,7 @@
+
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 def format_time(seconds):
     """Format seconds into HH:MM:SS format."""
@@ -14,10 +16,6 @@ def get_emoji_status(is_running):
 def send_discord_webhook(message, webhook_url, username="Twitch Channel Points Pro", color=0xF0C43F):
     """Send a message to a Discord webhook with luxury formatting."""
     try:
-        # Convert to EST timezone
-        from datetime import datetime, timezone
-        from zoneinfo import ZoneInfo
-        
         est_time = datetime.now(ZoneInfo("America/New_York"))
         formatted_time = est_time.strftime("%I:%M:%S %p EST")
         
@@ -42,12 +40,8 @@ def send_discord_webhook(message, webhook_url, username="Twitch Channel Points P
         }
         
         response = requests.post(webhook_url, json=data)
+        return response.status_code == 204
         
-        if response.status_code == 204:
-            return True
-        else:
-            print(f"Failed to send Discord webhook: Status code {response.status_code}")
-            return False
     except Exception as e:
         print(f"Error sending Discord webhook: {str(e)}")
         return False
