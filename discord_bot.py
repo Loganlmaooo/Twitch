@@ -322,7 +322,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = discord.Bot(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.tree.command(name="logs", description="Get recent logs for a channel")
 @app_commands.describe(channel="Twitch channel name")
